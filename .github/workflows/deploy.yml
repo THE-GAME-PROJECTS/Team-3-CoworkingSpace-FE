@@ -1,0 +1,81 @@
+name: Deploy Frontend to AWS ECR and EC2
+
+on:
+  push:
+    branches:
+      - main  # ✅ Запускається при пуші в main
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Get Commit Hash
+        id: vars
+        run: echo "COMMIT_HASH=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+
+      - name: Verify AWS CLI
+        run: aws --version  # ✅ Перевіряє, чи встановлений AWS CLI
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1  # ✅ Вказати свій регіон
+
+      - name: Login to Amazon ECR
+        run: |
+          aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 084375565324.dkr.ecr.us-east-1.amazonaws.com 
+
+      - name: Build and Push Docker Image
+        run: |
+          echo "Building Docker image with tag: $COMMIT_HASH"
+          docker build -t frontend-app:$COMMIT_HASH .
+          
+          echo "Tagging and pushing image to ECR"
+          docker tag frontend-app:$COMMIT_HASH 084375565324.dkr.ecr.us-east-1.amazonaws.com/frontend-app:$COMMIT_HASH
+          docker tag frontend-app:$COMMIT_HASH 084375565324.dkr.ecr.us-east-1.amazonaws.com/frontend-app:latest
+          docker push 084375565324.dkr.ecr.us-east-1.amazonaws.com/frontend-app:$COMMIT_HASH
+          docker push 084375565324.dkr.ecr.us-east-1.amazonaws.com/frontend-app:latest
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up SSH Key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+
+      - name: SSH into EC2 and Deploy
+        run: |
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ubuntu@52.207.218.26 << 'EOF'
+            set -e  # Зупиняє виконання при помилках
+            echo "Fetching latest image tag..."
+            # Отримуємо останній тег із AWS ECR
+            COMMIT_HASH=$(aws ecr describe-images --repository-name frontend-app --query 'sort_by(imageDetails, &imagePushedAt)[-1].imageTags[0]' --output text)
+
+            if [[ -z "$COMMIT_HASH" || "$COMMIT_HASH" == "None" ]]; then
+              echo "❌ ERROR: Не вдалося отримати тег останнього імеджа!"
+              aws ecr list-images --repository-name frontend-app --query 'imageIds[*].imageTag' --output table
+              exit 1
+            fi
+
+            echo "Using commit hash: $COMMIT_HASH"
+            echo "Logging into ECR..."
+            aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 084375565324.dkr.ecr.us-east-1.amazonaws.com
+            
+            echo "Pulling new image with tag: $COMMIT_HASH"
+            docker pull 084375565324.dkr.ecr.us-east-1.amazonaws.com/frontend-app:$COMMIT_HASH
+            
+            echo "Stopping and removing old container..."
+            docker stop frontend-container || true
+            docker rm frontend-container || true
+            
+            echo "Running new container..."
+            docker run -d -p 8080:80 --name frontend-container 084375565324.dkr.ecr.us-east-1.amazonaws.com/frontend-app:$COMMIT_HASH
+          EOF
