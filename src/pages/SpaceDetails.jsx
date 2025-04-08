@@ -59,9 +59,6 @@ export default function SpaceDetails() {
   if (loading) return <LoadingSpinner fullPage />;
   if (error) return <p className="text-red-500">{error}</p>;
   if (!space) return <p className="text-gray-500">Приміщення не знайдено.</p>;
-  if (loading || !space || !space.name || !space.address) {
-    return <LoadingSpinner fullPage />;
-  }
 
   // ==============================================
   // 5. MAIN COMPONENT RENDERING
