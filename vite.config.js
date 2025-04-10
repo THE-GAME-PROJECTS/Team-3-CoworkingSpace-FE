@@ -10,14 +10,13 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ""),
         secure: false,
-        configure: (proxy) => {
-          proxy.on("proxyReq", (proxyReq) => {
-            // Додаємо заголовки CORS для проксі
-            proxyReq.setHeader(
-              "Access-Control-Allow-Origin",
-              "http://localhost:5173",
-            );
-            proxyReq.setHeader("Access-Control-Allow-Credentials", "true");
+        configure: (proxy, _options) => {
+          proxy.on("proxyRes", (proxyRes) => {
+            // Додаємо CORS заголовки до відповіді від сервера
+            proxyRes.headers["Access-Control-Allow-Origin"] = "http://localhost:5173";
+            proxyRes.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS";
+            proxyRes.headers["Access-Control-Allow-Headers"] = "X-Requested-With, Content-Type, Authorization";
+            proxyRes.headers["Access-Control-Allow-Credentials"] = "true";
           });
         },
       },
