@@ -1,5 +1,3 @@
-<<<<<<< HEAD
-=======
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
@@ -15,9 +13,12 @@ export default defineConfig({
         configure: (proxy, _options) => {
           proxy.on("proxyRes", (proxyRes) => {
             // Додаємо CORS заголовки до відповіді від сервера
-            proxyRes.headers["Access-Control-Allow-Origin"] = "http://localhost:5173";
-            proxyRes.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS";
-            proxyRes.headers["Access-Control-Allow-Headers"] = "X-Requested-With, Content-Type, Authorization";
+            proxyRes.headers["Access-Control-Allow-Origin"] =
+              "http://localhost:5173";
+            proxyRes.headers["Access-Control-Allow-Methods"] =
+              "GET, POST, PUT, DELETE, OPTIONS";
+            proxyRes.headers["Access-Control-Allow-Headers"] =
+              "X-Requested-With, Content-Type, Authorization";
             proxyRes.headers["Access-Control-Allow-Credentials"] = "true";
           });
         },
@@ -25,4 +26,3 @@ export default defineConfig({
     },
   },
 });
->>>>>>> fbcf782032626dc37e66e728434d96331b49ce10
