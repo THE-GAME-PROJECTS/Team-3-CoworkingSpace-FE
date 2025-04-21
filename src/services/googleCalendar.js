@@ -13,8 +13,6 @@ const handleApiError = (error, context) => {
 export const createCalendarEvent = async (event) => {
   const url = `https://www.googleapis.com/calendar/v3/calendars/${CALENDAR_ID}/events?key=${API_KEY}`;
 
-  console.log("Creating calendar event:", { url, event });
-
   try {
     const response = await fetch(url, {
       method: "POST",
@@ -42,7 +40,6 @@ export const createCalendarEvent = async (event) => {
       throw new Error(data.error?.message || "Failed to create event");
     }
 
-    console.log("Event created successfully:", data);
     return data;
   } catch (error) {
     return handleApiError(error, "createEvent");
@@ -51,8 +48,6 @@ export const createCalendarEvent = async (event) => {
 
 export const updateCalendarEvent = async (eventId, event) => {
   const url = `https://www.googleapis.com/calendar/v3/calendars/${CALENDAR_ID}/events/${eventId}?key=${API_KEY}`;
-
-  console.log("Updating calendar event:", { url, eventId, event });
 
   try {
     const response = await fetch(url, {
@@ -75,8 +70,6 @@ export const updateCalendarEvent = async (eventId, event) => {
 
 export const deleteCalendarEvent = async (eventId) => {
   const url = `https://www.googleapis.com/calendar/v3/calendars/${CALENDAR_ID}/events/${eventId}?key=${API_KEY}`;
-
-  console.log("Deleting calendar event:", url);
 
   try {
     const response = await fetch(url, { method: "DELETE" });

@@ -7,9 +7,16 @@ import { addHours, format, parseISO, isAfter, isBefore } from "date-fns";
 import LoadingSpinner from "../components/LoadingSpinner";
 
 export default function BookSpace() {
+  // ----------------------------
+  // Initialization Block
+  // ----------------------------
   const { id } = useParams();
   const navigate = useNavigate();
   const { user, authFetch } = useAuth();
+
+  // ----------------------------
+  // State Management Block
+  // ----------------------------
   const [space, setSpace] = useState(null);
   const [bookedSlots, setBookedSlots] = useState([]);
   const [startDate, setStartDate] = useState(new Date());
@@ -19,13 +26,14 @@ export default function BookSpace() {
   const [error, setError] = useState("");
   const [totalPrice, setTotalPrice] = useState(0);
 
-  // Fetch space and bookings data
+  // ----------------------------
+  // Data Fetching Block
+  // ----------------------------
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       setError("");
       try {
-        // Fetch space data
         const spaceResponse = await authFetch(`/spaces/${id}`);
         if (!spaceResponse.ok) {
           throw new Error("Не вдалося завантажити приміщення");
@@ -33,7 +41,6 @@ export default function BookSpace() {
         const spaceData = await spaceResponse.json();
         setSpace(spaceData);
 
-        // Try to fetch bookings - handle case when endpoint might not exist
         try {
           const bookingsResponse = await authFetch(`/bookings?space_id=${id}`);
           if (bookingsResponse.ok) {
@@ -42,7 +49,6 @@ export default function BookSpace() {
           }
         } catch (bookingsError) {
           console.warn("Could not load bookings:", bookingsError);
-          // Continue without bookings data
         }
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -55,7 +61,9 @@ export default function BookSpace() {
     fetchData();
   }, [id, authFetch]);
 
-  // Calculate total price when dates change
+  // ----------------------------
+  // Price Calculation Block
+  // ----------------------------
   useEffect(() => {
     if (space && startDate && endDate) {
       const hours = Math.max(1, (endDate - startDate) / (1000 * 60 * 60));
@@ -63,21 +71,21 @@ export default function BookSpace() {
     }
   }, [startDate, endDate, space]);
 
-  // Handle form submission
+  // ----------------------------
+  // Booking Submission Block
+  // ----------------------------
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError("");
 
     try {
-      // Validate inputs
       if (!space) throw new Error("Приміщення не знайдено");
       if (!user) throw new Error("Користувач не авторизований");
       if (isAfter(startDate, endDate)) {
         throw new Error("Час закінчення повинен бути після часу початку");
       }
 
-      // Check for time conflicts
       const hasConflict = bookedSlots.some((booking) => {
         const bookingStart = new Date(booking.start_date);
         const bookingEnd = new Date(booking.end_date);
@@ -93,7 +101,6 @@ export default function BookSpace() {
         throw new Error("Обраний час вже зайнятий");
       }
 
-      // Submit booking
       const response = await authFetch("/bookings", {
         method: "POST",
         headers: {
@@ -122,6 +129,9 @@ export default function BookSpace() {
     }
   };
 
+  // ----------------------------
+  // Conditional Rendering Block
+  // ----------------------------
   if (!space && loading) return <LoadingSpinner fullPage />;
   if (error)
     return (
@@ -130,6 +140,9 @@ export default function BookSpace() {
       </div>
     );
 
+  // ----------------------------
+  // Main Render Block
+  // ----------------------------
   return (
     <div className="container mx-auto px-4 py-8 max-w-[900px]">
       <h1 className="text-3xl font-bold mb-[40px] mt-8">
@@ -143,6 +156,7 @@ export default function BookSpace() {
       )}
 
       <div className="grid md:grid-cols-2 gap-8">
+        {/* Booking Form Block */}
         <div>
           <h2 className="text-xl font-semibold mb-4 ml-2">Деталі бронювання</h2>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -213,6 +227,7 @@ export default function BookSpace() {
           </form>
         </div>
 
+        {/* Availability Calendar Block */}
         <div>
           <h2 className="text-xl font-semibold mb-6 ml-2">
             Календар доступності

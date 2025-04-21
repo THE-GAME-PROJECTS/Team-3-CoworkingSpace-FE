@@ -25,12 +25,22 @@ export default function Spaces() {
     const fetchSpaces = async () => {
       try {
         const response = await authFetch("/spaces");
+
+        const contentType = response.headers.get("content-type");
+        if (!contentType?.includes("application/json")) {
+          const text = await response.text();
+          throw new Error(
+            `Очікувався JSON, але отримано HTML: ${text.slice(0, 100)}...`,
+          );
+        }
+
         if (!response.ok) throw new Error("Не вдалося завантажити приміщення");
+
         const data = await response.json();
         setSpaces(data);
       } catch (error) {
-        console.error("Error fetching spaces:", error);
-        setError("Не вдалося завантажити приміщення");
+        console.error("Error:", error);
+        setError(error.message);
       } finally {
         setLoading(false);
       }
@@ -91,24 +101,46 @@ export default function Spaces() {
     <div className="container mx-auto px-4 py-8 max-w-[1200px]">
       <h1 className="text-3xl font-bold mt-8 mb-10 ml-4">Приміщення</h1>
 
-      {/* ========================================== */}
-      {/* 6.1. EMPTY STATE */}
-      {/* ========================================== */}
       {filteredSpaces.length === 0 ? (
         <p className="text-gray-500">Приміщень не знайдено.</p>
       ) : (
-        /* ======================================== */
-        /* 6.2. SPACES GRID */
-        /* ======================================== */
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <input
+              type="number"
+              placeholder="Мін. ціна"
+              value={minPrice}
+              onChange={(e) => setMinPrice(e.target.value)}
+              className="border rounded-md px-3 py-2"
+            />
+            <input
+              type="number"
+              placeholder="Макс. ціна"
+              value={maxPrice}
+              onChange={(e) => setMaxPrice(e.target.value)}
+              className="border rounded-md px-3 py-2"
+            />
+            <input
+              type="number"
+              placeholder="Мін. кількість місць"
+              value={minCapacity}
+              onChange={(e) => setMinCapacity(e.target.value)}
+              className="border rounded-md px-3 py-2"
+            />
+            <input
+              type="number"
+              placeholder="Макс. кількість місць"
+              value={maxCapacity}
+              onChange={(e) => setMaxCapacity(e.target.value)}
+              className="border rounded-md px-3 py-2"
+            />
+          </div>
+
           {filteredSpaces.map((space) => (
             <div
               key={space.id}
               className="bg-white rounded-md shadow-md overflow-hidden hover:shadow-lg transition-shadow"
             >
-              {/* ================================== */}
-              {/* 6.2.1. SPACE CARD CONTENT */}
-              {/* ================================== */}
               <Link to={`/spaces/${space.id}`}>
                 <img
                   src={

@@ -1,28 +1,19 @@
 import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";
+import react from "@vitejs/plugin-react"; // Потрібен для React проєктів
 
+// https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react()], // Має бути масив плагінів
   server: {
     proxy: {
       "/api": {
-        target: "http://52.207.218.26:5001",
+        target: "https://api.space-coworking.pp.ua",
         changeOrigin: true,
+        secure: true, // Використовувати secure для HTTPS
         rewrite: (path) => path.replace(/^\/api/, ""),
-        secure: false,
-        configure: (proxy, _options) => {
-          proxy.on("proxyRes", (proxyRes) => {
-            // Додаємо CORS заголовки до відповіді від сервера
-            proxyRes.headers["Access-Control-Allow-Origin"] =
-              "http://localhost:5173";
-            proxyRes.headers["Access-Control-Allow-Methods"] =
-              "GET, POST, PUT, DELETE, OPTIONS";
-            proxyRes.headers["Access-Control-Allow-Headers"] =
-              "X-Requested-With, Content-Type, Authorization";
-            proxyRes.headers["Access-Control-Allow-Credentials"] = "true";
-          });
-        },
       },
     },
   },
+
+  // Тут можуть бути інші налаштування...
 });

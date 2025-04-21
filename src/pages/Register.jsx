@@ -31,7 +31,7 @@ export default function Register() {
     const nameParts = trimmed.split(/\s+/);
 
     if (nameParts.length !== 2) {
-      return "Будь ласка, введіть ім'я та прізвище";
+      return "Будь ласка, введіть Ім'я та прізвище";
     }
 
     if (nameParts[0].length < 2 || nameParts[1].length < 2) {
@@ -126,7 +126,7 @@ export default function Register() {
                 fieldErrors.username ? "border-red-500" : ""
               }`}
               required
-              placeholder="Ім'я та Прізвище"
+              placeholder="Ім'я та прізвище"
             />
 
             {fieldErrors.username && (

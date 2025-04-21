@@ -3,9 +3,10 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Toaster } from "sonner";
 import Navbar from "./components/Navbar";
 import { AuthProvider } from "./contexts/AuthContext";
-import ProtectedRoute from "./components/ProtectedRoute";
-import GuestRoute from "./components/GuestRoute";
+import ProtectedRoute from "./components/ProtectedRoute.jsx";
+import GuestRoute from "./components/GuestRoute.jsx";
 import LoadingSpinner from "./components/LoadingSpinner";
+import VerifyEmail from "./components/VerifyEmail";
 
 const Spaces = lazy(() => import("./pages/Spaces"));
 const SpaceDetails = lazy(() => import("./pages/SpaceDetails"));
@@ -106,6 +107,7 @@ function App() {
                     </GuestRoute>
                   }
                 />
+                <Route path="/verify-email/:token" element={<VerifyEmail />} />
               </Routes>
             </Suspense>
           </main>

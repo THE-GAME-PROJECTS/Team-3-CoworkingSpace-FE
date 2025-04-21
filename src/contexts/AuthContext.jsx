@@ -185,32 +185,54 @@ export const AuthProvider = ({ children }) => {
   const authFetch = useCallback(
     async (endpoint, options = {}) => {
       const url = `${API_BASE_URL}${endpoint}`;
+
       let { accessToken } = getTokens();
 
       if (!accessToken) {
-        accessToken = await refreshToken();
-        if (!accessToken) {
-          throw new Error("Помилка автентифікації");
+        try {
+          accessToken = await refreshToken();
+
+          if (!accessToken) {
+            throw new Error("Failed to refresh token");
+          }
+        } catch (refreshError) {
+          console.error("[authFetch] Token refresh failed:", refreshError);
+          throw new Error("Authentication error");
         }
       }
 
       const headers = {
         ...options.headers,
+        Accept: "application/json",
         Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
       };
 
-      let response = await fetch(url, { ...options, headers });
+      try {
+        let response = await fetch(url, { ...options, headers });
 
-      if (response.status === 401) {
-        accessToken = await refreshToken();
-        if (!accessToken) {
-          throw new Error("Помилка автентифікації");
+        if (response.status === 401) {
+          try {
+            accessToken = await refreshToken();
+            if (!accessToken) {
+              throw new Error("Failed to refresh token");
+            }
+            headers.Authorization = `Bearer ${accessToken}`;
+            response = await fetch(url, { ...options, headers });
+          } catch (refreshError) {
+            console.error(
+              "[authFetch] Token refresh failed on 401:",
+              refreshError,
+            );
+            throw new Error("Authentication error");
+          }
         }
-        headers["Authorization"] = `Bearer ${accessToken}`;
-        response = await fetch(url, { ...options, headers });
-      }
 
-      return response;
+        return response;
+      } catch (error) {
+        console.error("[authFetch] Request failed:", error);
+        throw error;
+      }
     },
     [refreshToken],
   );
