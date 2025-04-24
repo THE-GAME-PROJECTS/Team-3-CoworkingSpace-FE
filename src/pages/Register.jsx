@@ -26,28 +26,6 @@ export default function Register() {
     }
   };
 
-  const validateName = (name) => {
-    const trimmed = name.trim();
-    const nameParts = trimmed.split(/\s+/);
-
-    if (nameParts.length !== 2) {
-      return "Будь ласка, введіть Ім'я та прізвище";
-    }
-
-    if (nameParts[0].length < 2 || nameParts[1].length < 2) {
-      return "Ім'я і прізвище мають містити щонайменше 2 літери";
-    }
-
-    if (
-      !/^[a-zA-Zа-яА-ЯїЇєЄґҐіІ'-]+$/.test(nameParts[0]) ||
-      !/^[a-zA-Zа-яА-ЯїЇєЄґҐіІ'-]+$/.test(nameParts[1])
-    ) {
-      return "Ім'я може містити тільки літери, апостроф або дефіс";
-    }
-
-    return "";
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -57,10 +35,6 @@ export default function Register() {
     const errors = {};
 
     // Validate username (first and last name)
-    const nameError = validateName(formData.username);
-    if (nameError) {
-      errors.username = nameError;
-    }
 
     // Password validation
     if (
