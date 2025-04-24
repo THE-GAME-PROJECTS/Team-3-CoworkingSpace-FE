@@ -35,7 +35,7 @@ export default function Register() {
     const errors = {};
 
     // Validate username (first and last name)
-    if (!/^[\p{L}-]+$/u.test(formData.username.trim())) {
+    if (!/^[\p{L}-]{2,}$/u.test(formData.username.trim())) {
       errors.username =
         "Ім'я має містити мінімум 2 літери, без цифр та спецсимволів";
     }
