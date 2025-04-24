@@ -37,7 +37,7 @@ export default function Spaces() {
         if (!response.ok) throw new Error("Не вдалося завантажити приміщення");
 
         const data = await response.json();
-        setSpaces(data);
+        setSpaces(Array.isArray(data) ? data : [data]);
       } catch (error) {
         console.error("Error:", error);
         setError(error.message);
