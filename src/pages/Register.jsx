@@ -93,7 +93,7 @@ export default function Register() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700">
-              Ім'я та прізвище
+              Ім'я
             </label>
             <input
               type="text"
@@ -104,7 +104,8 @@ export default function Register() {
                 fieldErrors.username ? "border-red-500" : ""
               }`}
               required
-              placeholder="Ім'я та прізвище"
+              placeholder="Ім'я"
+              minLength="2"
             />
 
             {fieldErrors.username && (
