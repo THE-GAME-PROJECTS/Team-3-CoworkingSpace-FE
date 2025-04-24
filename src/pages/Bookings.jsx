@@ -25,10 +25,7 @@ export default function Bookings() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const { user, authFetch } = useAuth();
-  const [selectedStatus, setSelectedStatus] = useState("all");
-  const [selectedDate, setSelectedDate] = useState("");
-  const [selectedStartTime, setSelectedStartTime] = useState("");
-  const [selectedEndTime, setSelectedEndTime] = useState("");
+
   // ----------------------------
   // Data Fetching Block
   // ----------------------------
@@ -74,32 +71,6 @@ export default function Bookings() {
   if (loading) return <LoadingSpinner fullPage />;
   if (error) return <p className="text-red-500">{error}</p>;
 
-  const filteredBookings = bookings.filter((booking) => {
-    const matchStatus =
-      selectedStatus === "all" || booking.status === selectedStatus;
-
-    const bookingDate = booking.start_date.split("T")[0];
-    const matchDate = selectedDate === "" || bookingDate === selectedDate;
-
-    const bookingStart = new Date(booking.start_time);
-    const bookingTime = format(bookingStart, "HH:mm");
-
-    const matchStartTime =
-      selectedStartTime === "" || booking.start_time >= selectedStartTime;
-
-    const matchEndTime =
-      selectedEndTime === "" || booking.end_time <= selectedStartTime;
-
-    const noFiltersSelected =
-      selectedStatus === "all" &&
-      selectedDate === "" &&
-      selectedStartTime === "" &&
-      selectedEndTime === "";
-    return noFiltersSelected(
-      matchStatus && matchDate && selectedStartTime && matchEndTime,
-    );
-  });
-
   // ----------------------------
   // Render Block
   // ----------------------------
@@ -126,70 +97,6 @@ export default function Bookings() {
                   : "bg-white border-gray-200"
               }`}
             >
-              {/* Filtering */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-                {/* Фільтр за статусом */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Фільтр за статусом
-                  </label>
-                  <select
-                    value={selectedStatus}
-                    onChange={(e) => setSelectedStatus(e.target.value)}
-                    className="border border-gray-300 rounded-md px-3 py-2 w-full"
-                  >
-                    <option value="all">Усі</option>
-                    <option value="pending">Очікує</option>
-                    <option value="approved">Підтверджено</option>
-                    <option value="rejected">Відхилено</option>
-                  </select>
-                </div>
-
-                {/* Фільтр за датою */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Дата
-                  </label>
-                  <input
-                    type="date"
-                    className="border border-gray-300 rounded-md px-3 py-2 w-full"
-                    value={selectedDate}
-                    onChange={(e) => {
-                      setSelectedDate(e.target.value);
-                    }}
-                  />
-                </div>
-
-                {/* Фільтр за часом */}
-                <div className="flex space-x-2">
-                  <div className="flex-1">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Час від
-                    </label>
-                    <input
-                      type="time"
-                      className="border border-gray-300 rounded-md px-3 py-2 w-full"
-                      value={selectedStartTime}
-                      onChange={(e) => {
-                        setSelectedStartTime(e.target.value);
-                      }}
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      до
-                    </label>
-                    <input
-                      type="time"
-                      className="border border-gray-300 rounded-md px-3 py-2 w-full"
-                      value={selectedEndTime}
-                      onChange={(e) => {
-                        setSelectedEndTime(e.target.value);
-                      }}
-                    />
-                  </div>
-                </div>
-              </div>
               <div className="flex justify-between items-start">
                 {/* Booking Info Block */}
                 <div>

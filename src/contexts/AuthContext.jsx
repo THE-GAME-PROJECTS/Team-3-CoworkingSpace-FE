@@ -185,23 +185,19 @@ export const AuthProvider = ({ children }) => {
   const authFetch = useCallback(
     async (endpoint, options = {}) => {
       const url = `${API_BASE_URL}${endpoint}`;
+
       let { accessToken } = getTokens();
 
-      console.log(`[authFetch] Початковий accessToken: ${accessToken}`);
-
       if (!accessToken) {
-        console.log(
-          "[authFetch] Токен доступу не знайдено, спроба оновлення...",
-        );
         try {
           accessToken = await refreshToken();
-          console.log(`[authFetch] Оновлений accessToken: ${accessToken}`);
+
           if (!accessToken) {
-            throw new Error("Не вдалося оновити токен");
+            throw new Error("Failed to refresh token");
           }
         } catch (refreshError) {
-          console.error("[authFetch] Помилка оновлення токена:", refreshError);
-          throw new Error("Помилка аутентифікації");
+          console.error("[authFetch] Token refresh failed:", refreshError);
+          throw new Error("Authentication error");
         }
       }
 
@@ -212,41 +208,29 @@ export const AuthProvider = ({ children }) => {
         "Content-Type": "application/json",
       };
 
-      console.log(`[authFetch] Запит на ${url} з заголовками:`, headers);
-
       try {
         let response = await fetch(url, { ...options, headers });
 
         if (response.status === 401) {
-          console.log(
-            "[authFetch] Отримано 401, спроба повторного оновлення...",
-          );
           try {
-            const newAccessToken = await refreshToken();
-            console.log(
-              `[authFetch] Оновлений accessToken після 401: ${newAccessToken}`,
-            );
-            if (!newAccessToken) {
-              throw new Error("Не вдалося оновити токен після 401");
+            accessToken = await refreshToken();
+            if (!accessToken) {
+              throw new Error("Failed to refresh token");
             }
-            headers.Authorization = `Bearer ${newAccessToken}`;
-            console.log(
-              `[authFetch] Повторний запит з новим токеном:`,
-              headers,
-            );
+            headers.Authorization = `Bearer ${accessToken}`;
             response = await fetch(url, { ...options, headers });
           } catch (refreshError) {
             console.error(
-              "[authFetch] Помилка оновлення токена після 401:",
+              "[authFetch] Token refresh failed on 401:",
               refreshError,
             );
-            throw new Error("Помилка аутентифікації");
+            throw new Error("Authentication error");
           }
         }
 
         return response;
       } catch (error) {
-        console.error("[authFetch] Помилка запиту:", error);
+        console.error("[authFetch] Request failed:", error);
         throw error;
       }
     },

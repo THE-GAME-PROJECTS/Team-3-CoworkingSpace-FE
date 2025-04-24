@@ -26,7 +26,7 @@ export default function AdminBookings() {
   const [error, setError] = useState("");
   const [syncStatus, setSyncStatus] = useState(null);
   const { isAdmin, authFetch } = useAuth();
-  const [selectedStatus, setSelectedStatus] = useState("all");
+  const [filterStatus, setFilterStatus] = useState("all");
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedStartTime, setSelectedStartTime] = useState("");
   const [selectedEndTime, setSelectedEndTime] = useState("");
@@ -99,10 +99,10 @@ export default function AdminBookings() {
   // ----------------------------
   const filteredBookings = bookings.filter((booking) => {
     const matchStatus =
-      selectedStatus === "all" || booking.status === selectedStatus;
+      filterStatus === "all" || booking.status === filterStatus;
 
     const bookingDate = booking.start_time.split("T")[0];
-    const matchDate = selectedDate === "" || bookingDate === selectedDate;
+    const matchDate = selectedDate === "all" || bookingDate === selectedDate;
 
     const bookingStart = new Date(booking.start_time);
     const bookingTime = format(bookingStart, "HH:mm");
@@ -114,7 +114,7 @@ export default function AdminBookings() {
       selectedEndTime === "" || bookingTime <= selectedEndTime;
 
     const noFiltersSelected =
-      selectedStatus === "all" &&
+      filterStatus === "all" &&
       selectedDate === "" &&
       selectedStartTime === "" &&
       selectedEndTime === "";
@@ -139,8 +139,8 @@ export default function AdminBookings() {
             Фільтр за статусом
           </label>
           <select
-            value={selectedStatus}
-            onChange={(e) => setSelectedStatus(e.target.value)}
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
             className="border border-gray-300 rounded-md px-3 py-2 w-full"
           >
             <option value="all">Усі</option>
@@ -239,7 +239,7 @@ const BookingItem = ({ booking, updateBookingStatus, loading }) => (
         <p className="text-gray-600">
           {format(parseISO(booking.start_time), "dd.MM.yyyy")}
           {" | "}
-          {format(parseISO(booking.start_time), "HH:mm")} -{" "}
+          {format(parseISO(booking.start_time), "HH:mm")} -{""}
           {format(parseISO(booking.end_time), "HH:mm")}
         </p>
 
