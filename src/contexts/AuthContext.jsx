@@ -184,7 +184,7 @@ export const AuthProvider = ({ children }) => {
   // ==============================================
   const authFetch = useCallback(
     async (endpoint, options = {}) => {
-      const url = `${API_BASE_URL}`;
+      const url = `${API_BASE_URL}${endpoint}`;
       let { accessToken } = getTokens();
 
       console.log(`[authFetch] Початковий accessToken: ${accessToken}`);
