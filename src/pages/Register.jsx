@@ -42,7 +42,7 @@ export default function Register() {
 
     // Password validation
     if (
-      !/^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{5,}$/.test(
+      !/^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?.&])[A-Za-z\d@$!%*?.&]{5,}$/.test(
         formData.password,
       )
     ) {
