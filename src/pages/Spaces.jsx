@@ -24,7 +24,7 @@ export default function Spaces() {
   useEffect(() => {
     const fetchSpaces = async () => {
       try {
-        const response = await authFetch("/spaces");
+        const response = await authFetch("/spaces/");
 
         const contentType = response.headers.get("content-type");
         if (!contentType?.includes("application/json")) {
