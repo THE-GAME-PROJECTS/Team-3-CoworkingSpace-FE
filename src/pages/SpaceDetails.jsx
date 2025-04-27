@@ -4,9 +4,6 @@ import { useAuth } from "../contexts/AuthContext";
 import LoadingSpinner from "../components/LoadingSpinner";
 
 export default function SpaceDetails() {
-  // ==============================================
-  // 1. HOOKS & INITIALIZATION
-  // ==============================================
   const { id } = useParams();
   const navigate = useNavigate();
   const { user, isAdmin, authFetch } = useAuth();
@@ -14,9 +11,6 @@ export default function SpaceDetails() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // ==============================================
-  // 2. FETCH SPACE DETAILS ON LOAD
-  // ==============================================
   useEffect(() => {
     const fetchSpace = async () => {
       try {
@@ -35,9 +29,6 @@ export default function SpaceDetails() {
     fetchSpace();
   }, [id, authFetch]);
 
-  // ==============================================
-  // 3. DELETE SPACE HANDLER
-  // ==============================================
   const handleDeleteSpace = async () => {
     try {
       const response = await authFetch(`/spaces/${id}`, {
@@ -53,16 +44,10 @@ export default function SpaceDetails() {
     }
   };
 
-  // ==============================================
-  // 4. CONDITIONAL RENDERING
-  // ==============================================
   if (loading) return <LoadingSpinner fullPage />;
   if (error) return <p className="text-red-500">{error}</p>;
   if (!space) return <p className="text-gray-500">Приміщення не знайдено.</p>;
 
-  // ==============================================
-  // 5. MAIN COMPONENT RENDERING
-  // ==============================================
   return (
     <div className="container mx-auto px-4 py-8 max-w-[1000px]">
       <div className="bg-white rounded-lg shadow-sm p-6 mt-8">
@@ -74,7 +59,7 @@ export default function SpaceDetails() {
 
         {/* Ціна */}
         <p className="text-lg text-green-600 font-bold mb-4">
-          {space.price} грн/год
+          {space.price_per_hour} грн/год
         </p>
 
         {/* Адреса з лінком */}
@@ -99,22 +84,35 @@ export default function SpaceDetails() {
         {/* Наявність Wi-Fi */}
         <p className="text-gray-700 mb-4">
           <span className="font-semibold">Наявність Wi-Fi:</span>{" "}
-          {space.hasWiFi ? "Так" : "Ні"}
+          {space.wifi_available ? "Так" : "Ні"}
         </p>
 
-        {/* Галерея зображень */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          {/* 
-          {space.images.map((image, index) => (
+        {/* Прев’ю зображення */}
+        {space.image_url && (
+          <div className="mb-6">
             <img
-              key={index}
-              src={image}
-              alt={`Space ${space.id} Image ${index}`}
-              className="w-full h-36 object-cover rounded-sm"
+              src={space.image_url}
+              alt="Фото приміщення"
+              className="w-full max-w-l h-64 object-cover rounded-md mx-auto"
             />
-          ))} 
-          */}
-        </div>
+          </div>
+        )}
+
+        {/* Галерея зображень (якщо у вас масив images) */}
+        {/* 
+        {Array.isArray(space.images) && space.images.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            {space.images.map((image, index) => (
+              <img
+                key={index}
+                src={image}
+                alt={`Space ${space.id} Image ${index}`}
+                className="w-full h-36 object-cover rounded-sm"
+              />
+            ))}
+          </div>
+        )}
+        */}
 
         {/* Кнопки дій */}
         <div className="flex space-x-4">
