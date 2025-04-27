@@ -14,6 +14,10 @@ export default function Spaces() {
   const [maxPrice, setMaxPrice] = useState("");
   const [minCapacity, setMinCapacity] = useState("");
   const [maxCapacity, setMaxCapacity] = useState("");
+  const [filterMinPrice, setFilterMinPrice] = useState("");
+  const [filterMaxPrice, setFilterMaxPrice] = useState("");
+  const [filterMinCapacity, setFilterMinCapacity] = useState("");
+  const [filterMaxCapacity, setFilterMaxCapacity] = useState("");
 
   const { user, isAdmin, authFetch } = useAuth();
   const navigate = useNavigate();
@@ -24,7 +28,7 @@ export default function Spaces() {
   useEffect(() => {
     const fetchSpaces = async () => {
       try {
-        const response = await authFetch("/spaces");
+        const response = await authFetch("/spaces/");
 
         const contentType = response.headers.get("content-type");
         if (!contentType?.includes("application/json")) {
@@ -94,48 +98,60 @@ export default function Spaces() {
   if (loading) return <LoadingSpinner fullPage />;
   if (error) return <p className="text-red-500 text-center mb-4">{error}</p>;
 
+  const handleApplyFilters = () => {
+    setMinPrice(filterMinPrice);
+    setMaxPrice(filterMaxPrice);
+    setMinCapacity(filterMinCapacity);
+    setMaxCapacity(filterMaxCapacity);
+  };
+
   // ==============================================
   // 6. RENDER COMPONENT
   // ==============================================
   return (
     <div className="container mx-auto px-4 py-8 max-w-[1200px]">
       <h1 className="text-3xl font-bold mt-8 mb-10 ml-4">Приміщення</h1>
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8 items-end">
+        <input
+          type="number"
+          placeholder="Мін. ціна"
+          value={filterMinPrice}
+          onChange={(e) => setFilterMinPrice(e.target.value)}
+          className="border rounded-md px-3 py-2"
+        />
+        <input
+          type="number"
+          placeholder="Макс. ціна"
+          value={filterMaxPrice}
+          onChange={(e) => setFilterMaxPrice(e.target.value)}
+          className="border rounded-md px-3 py-2"
+        />
+        <input
+          type="number"
+          placeholder="Мін. кількість місць"
+          value={filterMinCapacity}
+          onChange={(e) => setFilterMinCapacity(e.target.value)}
+          className="border rounded-md px-3 py-2"
+        />
+        <input
+          type="number"
+          placeholder="Макс. кількість місць"
+          value={filterMaxCapacity}
+          onChange={(e) => setFilterMaxCapacity(e.target.value)}
+          className="border rounded-md px-3 py-2"
+        />
+        <button
+          onClick={handleApplyFilters}
+          className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+        >
+          Застосувати
+        </button>
+      </div>
 
       {filteredSpaces.length === 0 ? (
         <p className="text-gray-500">Приміщень не знайдено.</p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            <input
-              type="number"
-              placeholder="Мін. ціна"
-              value={minPrice}
-              onChange={(e) => setMinPrice(e.target.value)}
-              className="border rounded-md px-3 py-2"
-            />
-            <input
-              type="number"
-              placeholder="Макс. ціна"
-              value={maxPrice}
-              onChange={(e) => setMaxPrice(e.target.value)}
-              className="border rounded-md px-3 py-2"
-            />
-            <input
-              type="number"
-              placeholder="Мін. кількість місць"
-              value={minCapacity}
-              onChange={(e) => setMinCapacity(e.target.value)}
-              className="border rounded-md px-3 py-2"
-            />
-            <input
-              type="number"
-              placeholder="Макс. кількість місць"
-              value={maxCapacity}
-              onChange={(e) => setMaxCapacity(e.target.value)}
-              className="border rounded-md px-3 py-2"
-            />
-          </div>
-
           {filteredSpaces.map((space) => (
             <div
               key={space.id}

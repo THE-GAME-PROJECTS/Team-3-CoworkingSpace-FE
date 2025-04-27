@@ -117,5 +117,5 @@ function App() {
     </BrowserRouter>
   );
 }
-
+document.body.classList.add("scrollbar-overlay");
 export default App;

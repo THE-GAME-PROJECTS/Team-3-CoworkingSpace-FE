@@ -15,9 +15,12 @@ export default function AddSpace() {
     google_maps_link: "",
     capacity: "",
     wifi_available: false,
+    projector_available: false,
+    status: "available",
   });
 
-  const [images, setImages] = useState([]);
+  const [imagePreviews, setImagePreviews] = useState([]);
+  const [base64Images, setBase64Images] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
@@ -34,80 +37,142 @@ export default function AddSpace() {
     }));
   };
 
+  // ==============================================
+  // 3. IMAGE HANDLING (OPTIMIZED)
+  // ==============================================
+  const processImages = async (files) => {
+    const validImages = Array.from(files).filter((file) =>
+      file.type.match(/image\/(jpeg|png|gif|jpg)/i),
+    );
+
+    if (validImages.length !== files.length) {
+      setError("Дозволені тільки зображення (JPEG, PNG, GIF)");
+      return;
+    }
+
+    // Перевірка розміру файлів (макс. 5MB)
+    const oversized = validImages.some((file) => file.size > 5 * 1024 * 1024);
+    if (oversized) {
+      setError("Максимальний розмір зображення - 5MB");
+      return;
+    }
+
+    try {
+      // Генерація прев'ю
+      const previews = validImages.map((file) => URL.createObjectURL(file));
+      setImagePreviews((prev) => [...prev, ...previews]);
+
+      // Конвертація в base64 (без префікса data:image/)
+      const base64Results = await Promise.all(
+        validImages.map((file) => {
+          return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => {
+              const base64 = reader.result.split(",")[1];
+              resolve({
+                base64,
+                name: file.name,
+                type: file.type,
+              });
+            };
+          });
+        }),
+      );
+
+      setBase64Images((prev) => [...prev, ...base64Results]);
+    } catch (error) {
+      console.error("Image processing failed:", error);
+      setError("Помилка при обробці зображень");
+    }
+  };
+
+  const handleFileInput = (e) => {
+    if (e.target.files && e.target.files.length > 0) {
+      processImages(e.target.files);
+    }
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const files = Array.from(e.dataTransfer.files);
+    if (files.length === 0) return;
+
+    // Перевіряємо і додаємо прев'ю
+    const newPreviews = files.map((file) => URL.createObjectURL(file));
+    setImagePreviews((prevPreviews) => [...prevPreviews, ...newPreviews]);
+
+    // Конвертуємо в base64 об'єкти
+    files.forEach((file) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64 = reader.result.split(",")[1];
+        setBase64Images((prevBase64s) => [
+          ...prevBase64s,
+          {
+            base64,
+            name: file.name,
+            type: file.type,
+          },
+        ]);
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const removeImage = (index) => {
+    // Очистка пам'яті для прев'ю
+    URL.revokeObjectURL(imagePreviews[index]);
+
+    setImagePreviews((prev) => prev.filter((_, i) => i !== index));
+    setBase64Images((prev) => prev.filter((_, i) => i !== index));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError("");
 
     try {
-      const imageUrls = images.length > 0 ? await uploadImages() : [];
+      // Валідація обов'язкових полів
+      if (!formData.name.trim() || !formData.address.trim()) {
+        throw new Error("Назва та адреса є обов'язковими полями");
+      }
 
-      const response = await authFetch("/spaces", {
+      if (base64Images.length === 0) {
+        throw new Error("Будь ласка, додайте хоча б одне зображення");
+      }
+
+      const response = await authFetch("/spaces/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
           ...formData,
-          image_urls: imageUrls,
+          image_url: base64Images.map((img) => img.base64),
+          // Приведення до типів API
+          projector_available: Boolean(formData.projector_available),
+          wifi_available: Boolean(formData.wifi_available),
         }),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || "Не вдалося додати приміщення");
+        throw new Error(
+          errorData.detail || errorData.message || "Помилка сервера",
+        );
       }
 
       navigate("/spaces");
     } catch (error) {
-      setError(error.message || "Помилка при додаванні простору");
-      console.error("AddSpace error:", error);
+      setError(error.message);
+      console.error("Submission error:", error);
     } finally {
       setLoading(false);
     }
-  };
-
-  // ==============================================
-  // 3. IMAGE HANDLING
-  // ==============================================
-  const uploadImages = async () => {
-    const formData = new FormData();
-    images.forEach((image) => {
-      formData.append("images", image);
-    });
-
-    const response = await authFetch("/upload", {
-      method: "POST",
-      body: formData,
-    });
-
-    if (!response.ok) {
-      throw new Error("Не вдалося завантажити зображення");
-    }
-
-    return await response.json();
-  };
-
-  const handleFiles = (files) => {
-    const newImages = Array.from(files).filter((file) =>
-      file.type.startsWith("image/"),
-    );
-
-    if (newImages.length !== files.length) {
-      setError("Будь ласка, вибирайте тільки зображення (PNG, JPG, JPEG, GIF)");
-    }
-
-    setImages((prev) => [...prev, ...newImages]);
-  };
-
-  const handleDrop = useCallback((e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    handleFiles(e.dataTransfer.files);
-  }, []);
-
-  const removeImage = (index) => {
-    setImages((prev) => prev.filter((_, i) => i !== index));
   };
 
   // ==============================================
@@ -321,7 +386,7 @@ export default function AddSpace() {
                       type="file"
                       multiple
                       accept="image/*"
-                      onChange={(e) => handleFiles(e.target.files)}
+                      onChange={handleFileInput}
                       className="sr-only"
                     />
                   </label>
@@ -336,17 +401,17 @@ export default function AddSpace() {
           </div>
 
           {/* Image Preview Section */}
-          {images.length > 0 && (
+          {imagePreviews.length > 0 && (
             <div className="mt-4">
               <h3 className="text-sm font-medium text-gray-700 mb-2">
-                Завантажені фото ({images.length})
+                Завантажені фото ({imagePreviews.length})
               </h3>
 
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                {images.map((image, index) => (
+                {imagePreviews.map((preview, index) => (
                   <div key={index} className="relative group">
                     <img
-                      src={URL.createObjectURL(image)}
+                      src={preview}
                       alt={`Прев'ю ${index + 1}`}
                       className="w-full h-32 object-cover rounded-md"
                     />
@@ -359,10 +424,6 @@ export default function AddSpace() {
                     >
                       &times;
                     </button>
-
-                    <div className="text-xs text-gray-500 truncate mt-1">
-                      {image.name}
-                    </div>
                   </div>
                 ))}
               </div>
@@ -374,22 +435,12 @@ export default function AddSpace() {
             <button
               type="submit"
               disabled={loading}
-              className={`
-                w-full flex justify-center items-center py-3 px-4 border border-transparent 
-                rounded-md shadow-sm text-sm font-medium text-white 
-                focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500
-                transition-transform duration-100 ease-in-out
-                ${loading ? "bg-green-400" : "bg-green-600 hover:bg-green-700"}
-                active:scale-95
-              `}
+              className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-md shadow-md transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (
-                <>
-                  <LoadingSpinner small className="mr-2" />
-                  Збереження...
-                </>
+                <LoadingSpinner small className="mr-2" />
               ) : (
-                "Зберегти зміни"
+                "Додати приміщення"
               )}
             </button>
           </div>

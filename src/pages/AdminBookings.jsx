@@ -98,31 +98,24 @@ export default function AdminBookings() {
   // Filtering Booking by Date & Time
   // ----------------------------
   const filteredBookings = bookings.filter((booking) => {
+    // Фільтрація за статусом
     const matchStatus =
       filterStatus === "all" || booking.status === filterStatus;
 
+    // Фільтрація за датою
     const bookingDate = booking.start_time.split("T")[0];
-    const matchDate = selectedDate === "all" || bookingDate === selectedDate;
+    const matchDate = !selectedDate || bookingDate === selectedDate;
 
+    // Фільтрація за часом
     const bookingStart = new Date(booking.start_time);
     const bookingTime = format(bookingStart, "HH:mm");
 
-    const matchStartTime =
-      selectedStartTime === "" || bookingTime >= selectedStartTime;
+    // Правильне порівняння часу
+    const matchTime =
+      (!selectedStartTime || bookingTime >= selectedStartTime) &&
+      (!selectedEndTime || bookingTime <= selectedEndTime);
 
-    const matchEndTime =
-      selectedEndTime === "" || bookingTime <= selectedEndTime;
-
-    const noFiltersSelected =
-      filterStatus === "all" &&
-      selectedDate === "" &&
-      selectedStartTime === "" &&
-      selectedEndTime === "";
-
-    return (
-      noFiltersSelected ||
-      (matchStatus && matchDate && matchStartTime && matchEndTime)
-    );
+    return matchStatus && matchDate && matchTime;
   });
 
   // ----------------------------
