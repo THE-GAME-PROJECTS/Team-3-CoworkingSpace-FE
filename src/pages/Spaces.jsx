@@ -30,7 +30,7 @@ export default function Spaces() {
       try {
         const endpoint = isAdmin()
           ? "/spaces/"
-          : "/spaces/available-for-bookng";
+          : "/spaces/available-for-booking";
         const response = await authFetch(endpoint);
 
         const contentType = response.headers.get("content-type");
@@ -228,7 +228,7 @@ export default function Spaces() {
                       navigate(
                         isAdmin()
                           ? `/spaces/${space.id}`
-                          : `/spaces/available-for-bookng/${space.id}`,
+                          : `/spaces/available-for-booking/${space.id}`,
                       )
                     }
                     className="w-full block px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 text-center"
