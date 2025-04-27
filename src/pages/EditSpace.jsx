@@ -19,6 +19,7 @@ export default function EditSpace() {
     google_maps_link: "",
     capacity: "1",
     wifi_available: false,
+    projector_available: false,
     image_urls: [],
   });
 
@@ -46,6 +47,7 @@ export default function EditSpace() {
         google_maps_link: data.google_maps_link || "",
         capacity: data.capacity ? String(data.capacity) : "1",
         wifi_available: Boolean(data.wifi_available),
+        projector_available: Boolean(data.projector_available),
         image_urls: data.image_urls || [],
       });
     } catch (error) {
@@ -135,6 +137,7 @@ export default function EditSpace() {
         google_maps_link: space.google_maps_link,
         capacity: parseInt(space.capacity),
         wifi_available: Boolean(space.wifi_available),
+        projector_available: Boolean(space.projector_available),
         image_urls: [...space.image_urls, ...uploadedImageUrls],
       };
 
@@ -391,7 +394,22 @@ export default function EditSpace() {
               Наявність Wi-Fi
             </label>
           </div>
-
+          <div className="flex items-center">
+            <input
+              id="projector_available"
+              name="projector_available"
+              type="checkbox"
+              checked={formData.projector_available}
+              onChange={handleChange}
+              className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+            />
+            <label
+              htmlFor="wifi_available"
+              className="ml-2 block text-sm text-gray-700"
+            >
+              Наявність проєктора
+            </label>
+          </div>
           {/* Image Upload Section */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">

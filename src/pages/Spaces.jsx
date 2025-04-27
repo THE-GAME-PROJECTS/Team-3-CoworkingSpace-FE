@@ -28,7 +28,10 @@ export default function Spaces() {
   useEffect(() => {
     const fetchSpaces = async () => {
       try {
-        const response = await authFetch("/spaces/");
+        const endpoint = isAdmin()
+          ? "/spaces/"
+          : "/spaces/available-for-bookng";
+        const response = await authFetch(endpoint);
 
         const contentType = response.headers.get("content-type");
         if (!contentType?.includes("application/json")) {
@@ -51,8 +54,7 @@ export default function Spaces() {
     };
 
     fetchSpaces();
-  }, [authFetch]);
-
+  }, [authFetch, isAdmin]);
   // ==============================================
   // 3. SPACE MANAGEMENT FUNCTIONS
   // ==============================================
@@ -157,11 +159,17 @@ export default function Spaces() {
               key={space.id}
               className="bg-white rounded-md shadow-md overflow-hidden hover:shadow-lg transition-shadow"
             >
-              <Link to={`/spaces/${space.id}`}>
+              <Link
+                to={
+                  isAdmin()
+                    ? `/spaces/${space.id}`
+                    : `/spaces/available-for-bookng/${space.id}`
+                }
+              >
                 <img
                   src={
                     space.image_url && space.image_url.length > 0
-                      ? space.image_url[0]
+                      ? space.image_url
                       : "/default-space.jpg"
                   }
                   alt={space.name || "Приміщення"}
@@ -216,7 +224,13 @@ export default function Spaces() {
               {user && !isAdmin() && (
                 <div className="p-4">
                   <button
-                    onClick={() => navigate(`/spaces/${space.id}`)}
+                    onClick={() =>
+                      navigate(
+                        isAdmin()
+                          ? `/spaces/${space.id}`
+                          : `/spaces/available-for-bookng/${space.id}`,
+                      )
+                    }
                     className="w-full block px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 text-center"
                   >
                     Забронювати
